@@ -1,0 +1,139 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>template a-frame (stage)</title>
+
+    <script src="https://aframe.io/releases/0.8.0/aframe.min.js"></script>
+    <script asset="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
+    <script asset="networked-aframe.min.js"></script>
+    <script asset="https://unpkg.com/aframe-randomizer-components@^3.0.1/dist/aframe-randomizer-components.min.js"></script>
+    <script src="https://unpkg.com/aframe-event-set-component@4.2.1/dist/aframe-event-set-component.min.js"></script>
+    <!-- librairie pour attraper des objets -->
+    <script src="https://cdn.rawgit.com/donmccurdy/aframe-extras/v4.1.2/dist/aframe-extras.min.js"></script>
+    <script src="https://unpkg.com/super-hands@^3.0.1/dist/super-hands.min.js"></script>
+    <script asset="./js/spawn-in-circle.component.js"></script>
+    
+  </head>
+  <body>
+    <a-scene networked-scene="
+      room: audio;
+      adapter: easyrtc;
+      audio: true;
+      debug: true;
+    " >
+      <a-assets>
+        <img id="grid" src="https://img.gs/bbdkhfbzkk/stretch/https://i.imgur.com/25P1geh.png" crossorigin="anonymous"> 
+        <!-- Templates -->
+        <!-- Avatar -->
+        <template id="avatar-template">
+          <a-entity class="avatar" networked-audio-source>
+            <a-sphere class="head"
+              color="#5985ff"
+              scale="0.45 0.5 0.4"
+              random-color
+            ></a-sphere>
+            <a-entity class="face"
+              position="0 0.05 0"
+            >
+              <a-sphere class="eye"
+                color="#efefef"
+                position="0.16 0.1 -0.35"
+                scale="0.12 0.12 0.12"
+              >
+                <a-sphere class="pupil"
+                  color="#000"
+                  position="0 0 -1"
+                  scale="0.2 0.2 0.2"
+                ></a-sphere>
+              </a-sphere>
+              <a-sphere class="eye"
+                color="#efefef"
+                position="-0.16 0.1 -0.35"
+                scale="0.12 0.12 0.12"
+              >
+                <a-sphere class="pupil"
+                  color="#000"
+                  position="0 0 -1"
+                  scale="0.2 0.2 0.2"
+                ></a-sphere>
+              </a-sphere>
+            </a-entity>
+          </a-entity>
+        </template>
+        <!-- /Templates -->
+      </a-assets>
+
+      <a-assets>
+        <a_asset-item id="object" src="paper_airplane.obj" ></a_asset-item>
+      </a-assets>
+      <a-obj-model class="clickable" src="#object" scale="50 50 50" position="0 1.5 0"
+      click-drag hoverable grabbable draggable droppable clickable
+      event-set__start="_event:grab-start; target: .clickable"
+      event-set__end="_event:grab-end; target: .clickable"
+      event-set__dragdrop="_event: drag-drop;" 
+      event-set__hoveron="_event: hover-start;"
+      event-set__hoveroff="_event: hover-end;"
+      event-set__dragon="_event: dragover-start;"
+      event-set__dragoff="_event: dragover-end;">
+    </a-obj-model>
+      
+      
+      <a-box class="clickable" click-drag hoverable grabbable draggable droppable clickable 
+      event-set__start="_event:grab-start; target: #clickable"
+      event-set__end="_event:grab-end; target: #clickable"
+      position="-1 1.5 -2" rotation="0 0 0" color="#f0e507" shadow></a-box>
+      <a-sphere class="clickable" click-drag hoverable grabbable draggable droppable clickable
+      event-set__start="_event:grab-start; target: #clickable"
+      event-set__end="_event:grab-end; target: #clickable"
+      event-set__dragdrop="_event: drag-drop;" 
+      event-set__hoveron="_event: hover-start;"
+      event-set__hoveroff="_event: hover-end;"
+      event-set__dragon="_event: dragover-start;"
+      event-set__dragoff="_event: dragover-end;" 
+      position="-1 1.5 -4" color="#0794f0" shadow></a-sphere>
+
+      <a-entity id="player" networked="template:#avatar-template;attachTemplateToLocal:false;"> 
+        <a-entity camera spawn-in-circle="radius:3;" wasd-controls position="0 1.3 0" look-controls>
+          <a-cursor rayOrigin="mouse" fuze="true" 
+          color="black"
+          raycaster="objects:.clickable"></a-cursor>
+        </a-entity>
+      </a-entity>
+      <a-entity oculus-touch-controls="hand:left" raycaster="objects:.clickable; showLine: true; far:2" 
+        super-hands="colliderEvent: raycaster-intersection;
+        colliderEventProperty: els;
+        colliderEndEvent: raycaster-intersection-cleared;
+        colliderEndEventProperty: clearedEls"></a-entity>
+      <a-entity oculus-touch-controls="hand:right" raycaster="objects:.clickable; showLine: true; far:2" 
+        super-hands="colliderEvent: raycaster-intersection;
+        colliderEventProperty: els;
+        colliderEndEvent: raycaster-intersection-cleared;
+        colliderEndEventProperty: clearedEls"></a-entity>
+        <a-sphere class="head" visible="false" random-color></a-sphere>
+     
+
+      <a-entity modify-mesh></a-entity>
+      
+      <!-- sol -->
+      <a-entity position="0 0 0"
+        geometry="primitive: plane; width: 10000; height: 10000;" rotation="-90 0 0"
+        material="src: #grid; repeat: 10000 10000; transparent: true; metalness:0.6; roughness: 0.4;"></a-entity>
+      <!-- lumiere -->
+      <a-entity light="color: #ccccff; intensity: 1; type: ambient;" visible=""></a-entity>
+      <a-entity light="color: #ffaaff; intensity: 1.5" position="5 5 5"></a-entity>
+      <!-- ciel -->
+      <img id="sky" src="sky.jpg">
+      <a-sky src="#sky" rotation="0 -90 0"></a-sky>
+    </a-scene>
+    
+    <script>
+      // On mobile remove elements that are resource heavy
+      var isMobile = AFRAME.utils.device.isMobile();
+
+      if (isMobile) {
+        var particles = document.getElementById('particles');
+        particles.parentNode.removeChild(particles);
+      }
+    </script>
+  </body>
+</html>
